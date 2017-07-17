@@ -1,0 +1,81 @@
+{% load staticfiles %}
+<html>
+<head>
+	<title>Stik Me -- A very very lightweight URL shortner</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" >
+	<link rel="stylesheet" href="{% static 'css/custom.css' %}">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+</head>
+<body>
+  <div class="container">  
+  <form id="mainform" action="{{ request.get_full_path }}" method="post">{% csrf_token %}
+    <fieldset>
+      <input name="original_url" id="original_url" placeholder="long URL" type="url" tabindex="1" onblur="checkURL(this)" required autofocus>
+    </fieldset>
+    <fieldset>
+      <input name="custom_tag" id="custom_tag" placeholder="Custom Tag (optional)" type="text" tabindex="3" onkeyup="nospaces(this)">
+    </fieldset>
+	<fieldset>
+		<input type="hidden" name="base_url" id="base_url" value="{{ request.META.HTTP_HOST }}">
+	</fieldset>	
+    <fieldset>
+      <button name="submit" type="submit" id="contact-submit"><span class="glyphicon glyphicon-link" aria-hidden="true"></span> Shorten</button>
+    </fieldset>
+  </form>
+</div>
+<script>
+function nospaces(t){
+
+    if( t.value.match(/\s/g) || t.value.match(/\./g)  ){
+
+        alert('Cannot have spaces/periods here');
+
+        t.value= (t.value.replace(/\s/g,'') .replace(/\./g,''));
+
+    }
+
+}
+function checkURL (user_input) {
+  var string = user_input.value;
+  if(string){
+	if (!~string.indexOf("http")) {
+		string = "http://" + string;
+	}
+	/*if (!~string.indexOf(".com")) {
+		string = string + ".com";
+	}*/
+	user_input.value = string;
+	return user_input;
+	}
+}
+</script>
+<script type="text/javascript">
+    var frm = $('#mainform');
+
+    frm.submit(function (e) {
+
+        e.preventDefault();
+		var form_data = $('#mainform').serialize();
+        $.ajax({
+        method: 'POST',
+        url: '/',
+        data: form_data,
+        success: function (data) {
+             //this gets called when server returns an OK response
+			 if(data === 'exists'){
+				swal("Sorry, That tag is already taken!",'',"error",animation=false)
+			 }
+             else{
+				swal("Done!", data, "success")
+			 }
+        },
+        error: function (data) {
+             alert("it didnt work");
+        }
+	  });
+    });
+</script>
+</body>
+</html>
